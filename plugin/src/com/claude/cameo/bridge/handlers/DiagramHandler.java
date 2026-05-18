@@ -12,6 +12,7 @@ import com.nomagic.magicdraw.openapi.uml.PresentationElementsManager;
 import com.nomagic.magicdraw.uml.ClassTypes;
 import com.nomagic.magicdraw.uml.symbols.DiagramPresentationElement;
 import com.nomagic.magicdraw.uml.symbols.PresentationElement;
+import com.nomagic.magicdraw.uml.symbols.layout.Layouting;
 import com.nomagic.magicdraw.uml.symbols.shapes.ShapeElement;
 import com.nomagic.magicdraw.uml.symbols.paths.PathElement;
 import com.nomagic.magicdraw.visualization.relationshipmap.RelationshipMapUtilities;
@@ -791,7 +792,7 @@ public class DiagramHandler implements HttpHandler {
             DiagramPresentationElement dpe = findDiagramById(project, diagramId);
             dpe.ensureLoaded();
 
-            boolean success = dpe.layout(true);
+            boolean success = Layouting.layout(dpe);
 
             JsonObject response = new JsonObject();
             response.addProperty("diagramId", diagramId);
@@ -836,7 +837,7 @@ public class DiagramHandler implements HttpHandler {
                 throw new IllegalArgumentException("Presentation element not found: " + peId);
             }
 
-            PropertyManager pm = target.getPropertyManager();
+            PropertyManager pm = PresentationElementsManager.getInstance().getPropertyManager(target);
             JsonArray propertiesArray = new JsonArray();
             JsonObject propertiesObject = new JsonObject();
             JsonObject compartments = new JsonObject();
@@ -1243,8 +1244,7 @@ public class DiagramHandler implements HttpHandler {
                         "Presentation element not found: " + peId);
             }
 
-            // MUST clone the PropertyManager -- Cameo rejects reuse of the old one
-            PropertyManager pm = target.getPropertyManager().clone();
+            PropertyManager pm = PresentationElementsManager.getInstance().getPropertyManager(target).clone();
             @SuppressWarnings("unchecked")
             List<Property> properties = pm.getProperties();
             JsonArray updated = new JsonArray();
@@ -1328,7 +1328,7 @@ public class DiagramHandler implements HttpHandler {
                 throw new IllegalArgumentException("Presentation element not found: " + peId);
             }
 
-            PropertyManager pm = target.getPropertyManager().clone();
+            PropertyManager pm = PresentationElementsManager.getInstance().getPropertyManager(target).clone();
             @SuppressWarnings("unchecked")
             List<Property> properties = pm.getProperties();
             Map<String, Property> propertyByName = new LinkedHashMap<>();
@@ -2204,7 +2204,7 @@ public class DiagramHandler implements HttpHandler {
             Map<String, PropertySelection> selections,
             boolean resetLabels,
             boolean applyChanges) {
-        PropertyManager pm = target.getPropertyManager().clone();
+        PropertyManager pm = pem.getPropertyManager(target).clone();
         @SuppressWarnings("unchecked")
         List<Property> properties = pm.getProperties();
         JsonArray updated = new JsonArray();
@@ -2491,7 +2491,7 @@ public class DiagramHandler implements HttpHandler {
 
     private boolean targetHasAllocationProperties(PresentationElement pe) {
         try {
-            PropertyManager pm = pe.getPropertyManager();
+            PropertyManager pm = PresentationElementsManager.getInstance().getPropertyManager(pe);
             @SuppressWarnings("unchecked")
             List<Property> properties = pm.getProperties();
             for (Property property : properties) {
@@ -2515,7 +2515,7 @@ public class DiagramHandler implements HttpHandler {
             PresentationElement target,
             Map<String, PropertySelection> selections) {
         try {
-            PropertyManager pm = target.getPropertyManager();
+            PropertyManager pm = PresentationElementsManager.getInstance().getPropertyManager(target);
             @SuppressWarnings("unchecked")
             List<Property> properties = pm.getProperties();
             for (Property property : properties) {

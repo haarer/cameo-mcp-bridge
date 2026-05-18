@@ -13,8 +13,10 @@ import com.google.gson.JsonObject;
 import com.nomagic.magicdraw.core.Project;
 import com.nomagic.magicdraw.export.image.ImageExporter;
 import com.nomagic.magicdraw.openapi.uml.ModelElementsManager;
+import com.nomagic.magicdraw.ui.ProjectEditorWindowsManager;
 import com.nomagic.magicdraw.uml.ClassTypes;
 import com.nomagic.magicdraw.uml2.Connectors;
+import com.nomagic.magicdraw.uml.symbols.layout.Layouting;
 import com.nomagic.magicdraw.uml.symbols.DiagramPresentationElement;
 import com.nomagic.magicdraw.uml.symbols.PresentationElement;
 import com.nomagic.magicdraw.expressions.specification.CallExpressionSpecification;
@@ -415,7 +417,7 @@ public class RelationMapHandler implements HttpHandler {
                     }
                     if (layout != null && applied) {
                         new GraphSettings(diagram).setLayout(layout);
-                        dpe.layout(true);
+                        Layouting.layout(dpe);
                     }
                     dpe.ensureLoaded();
                     int after = PresentationSerializer.flatten(dpe, null).size();
@@ -482,7 +484,7 @@ public class RelationMapHandler implements HttpHandler {
             if (layout != null) {
                 try {
                     new GraphSettings(diagram).setLayout(layout);
-                    dpe.layout(true);
+                    Layouting.layout(dpe);
                 } catch (Exception e) {
                     warnings.add("Relation Map layout failed: " + describeException(e));
                 }
@@ -1074,9 +1076,13 @@ public class RelationMapHandler implements HttpHandler {
     private JsonObject relationMapDisplaySummary(DiagramPresentationElement dpe) {
         JsonObject summary = new JsonObject();
         try {
-            summary.addProperty("diagramWindowOpen", dpe.isDiagramWindowOpen());
-            summary.addProperty("diagramWindowActive", dpe.isDiagramWindowActive());
-            if (!dpe.isDiagramWindowOpen()) {
+            Project project = Project.getProject(dpe);
+            ProjectEditorWindowsManager wm = project.getProjectEditorWindowsManager();
+            boolean isOpen = wm.isOpened(dpe) != null;
+            boolean isActive = wm.getActiveWindow() != null && wm.getActiveWindow().equals(wm.isOpened(dpe));
+            summary.addProperty("diagramWindowOpen", isOpen);
+            summary.addProperty("diagramWindowActive", isActive);
+            if (!isOpen) {
                 summary.addProperty("available", false);
                 summary.addProperty("reason", "Relation Map diagram window is not open");
                 return summary;
@@ -1123,7 +1129,9 @@ public class RelationMapHandler implements HttpHandler {
             return false;
         }
         try {
-            if (!dpe.isDiagramWindowOpen()) {
+            Project project = Project.getProject(dpe);
+            ProjectEditorWindowsManager wm = project.getProjectEditorWindowsManager();
+            if (wm.isOpened(dpe) == null) {
                 dpe.open();
             }
             Object display = getRelationMapDisplay(dpe);

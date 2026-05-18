@@ -2,6 +2,7 @@ package com.claude.cameo.bridge.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.nomagic.magicdraw.openapi.uml.PresentationElementsManager;
 import com.nomagic.magicdraw.properties.PropertyManager;
 import com.nomagic.magicdraw.uml.symbols.DiagramPresentationElement;
 import com.nomagic.magicdraw.uml.symbols.PresentationElement;
@@ -89,7 +90,7 @@ public final class PresentationSerializer {
             boolean summaryOnly) {
         JsonObject json = presentationSummary(pe, parentPresentationId);
         try {
-            PropertyManager manager = pe.getPropertyManager();
+            PropertyManager manager = PresentationElementsManager.getInstance().getPropertyManager(pe);
             json.add("propertyManager", PropertySerializer.serializeManager(manager, includeRaw, summaryOnly));
         } catch (Exception e) {
             JsonArray warnings = new JsonArray();
