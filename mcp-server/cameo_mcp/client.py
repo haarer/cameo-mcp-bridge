@@ -255,8 +255,9 @@ def _transform_diagram_image(
 
 
 def _base_url() -> str:
+    host = os.environ.get("CAMEO_BRIDGE_HOST", "host.containers.internal")
     port = os.environ.get("CAMEO_BRIDGE_PORT", "18740")
-    return f"http://127.0.0.1:{port}/api/v1"
+    return f"http://{host}:{port}/api/v1"
 
 
 # Module-level singleton client for connection pooling and keepalive
@@ -434,8 +435,9 @@ async def get_ui_selection() -> dict[str, Any]:
 
 async def probe_bridge() -> dict[str, Any]:
     """Probe common bridge health/capability endpoints without assuming one path."""
+    host = os.environ.get("CAMEO_BRIDGE_HOST", "host.containers.internal")
     port = os.environ.get("CAMEO_BRIDGE_PORT", "18740")
-    root_url = f"http://127.0.0.1:{port}"
+    root_url = f"http://{host}:{port}"
     probes = [
         ("status", "/status"),
         ("status", "/api/v1/status"),
